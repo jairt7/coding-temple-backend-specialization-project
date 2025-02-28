@@ -27,9 +27,17 @@ def create_mechanic():
 @mechanics_bp.route('/', methods=['GET'])
 @cache.cached(timeout=60)
 def get_mechanics():
-    query = select(Mechanic)
-    result = db.session.execute(query).scalars().all()
-    return mechanics_schema.jsonify(result), 200
+    try:
+        page = int(request.args.get('page'))
+        per_page = int(request.args.get('per_page'))
+        query = select(Mechanic)
+        mechanics = db.paginate(query, page=page, per_page=per_page)
+        return mechanics_schema.jsonify(mechanics), 200
+    
+    except:
+        query = select(Mechanic)
+        result = db.session.execute(query).scalars().all()
+        return mechanics_schema.jsonify(result), 200
 
 @mechanics_bp.route('/<int:mechanic_id>', methods=['PUT'])
 def update_mechanic(mechanic_id):
