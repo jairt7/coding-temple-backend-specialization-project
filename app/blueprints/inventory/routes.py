@@ -2,7 +2,7 @@ from . import inventory_bp
 from marshmallow import ValidationError
 from flask import request, jsonify
 from app.models import Inventory, db
-from .schemas import inventory_schema
+from .schemas import inventory_schema, inventory_multi_schema
 from sqlalchemy import select, delete
 from app.extensions import limiter, cache
 
@@ -32,13 +32,13 @@ def get_inventory():
         per_page = int(request.args.get('per_page'))
         query = select(Inventory)
         inventory = db.paginate(query, page=page, per_page=per_page)
-        return inventory_schema.jsonify(inventory), 200
+        return inventory_multi_schema.jsonify(inventory), 200
     
     except:
         query = select(Inventory)
         result = db.session.execute(query).scalars().all()
         print(result)
-        return inventory_schema.jsonify(result), 200
+        return inventory_multi_schema.jsonify(result), 200
 
 @inventory_bp.route('/<int:item_id>', methods=['PUT'])
 def update_inventory(item_id):

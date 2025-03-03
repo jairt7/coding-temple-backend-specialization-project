@@ -1,7 +1,7 @@
 from marshmallow import ValidationError
 from flask import request, jsonify
 from . import service_ticket_bp
-from .schemas import service_ticket_schema, service_tickets_schema, edit_service_ticket_schema, add_inventory_item_schema, remove_inventory_item_schema
+from .schemas import service_ticket_schema, service_tickets_schema, edit_service_ticket_schema
 from app.models import db, ServiceTicket, Mechanic, Customer, Inventory, ServiceInventory
 from sqlalchemy import select, delete
 
@@ -22,13 +22,14 @@ def create_service_ticket():
 
     mechanic_ids = service_ticket_data.get('mechanics', [])
 
+    mechanics = []
     for mechanic_id in mechanic_ids:
-        query = select(Mechanic).where(Mechanic.id==mechanic_id)
-        mechanic = db.session.execute(query).scalars().first()
-        if mechanic:
-            new_service_ticket.mechanics.append(mechanic)
-        else:
-            return jsonify({'message': 'invalid mechanic id'}), 400
+        mechanic = db.session.execute(select(Mechanic).where(Mechanic.id == mechanic_id)).scalars().first()
+        if not mechanic:
+            return jsonify({'message': f'Invalid mechanic ID: {mechanic_id}'}), 400
+        mechanics.append(mechanic)
+
+    new_service_ticket.mechanics.extend(mechanics)
     
     db.session.add(new_service_ticket)
     db.session.commit()
@@ -41,7 +42,7 @@ def get_service_tickets():
         page = int(request.args.get('page'))
         per_page = int(request.args.get('per_page'))
         query = select(ServiceTicket)
-        tickets = db.paginate(query, page=page, per_page=per_page)
+        tickets = db.session.scalars(query).paginate(page=page, per_page=per_page)
         return service_tickets_schema.jsonify(tickets), 200
     
     except:
@@ -59,19 +60,22 @@ def edit_service_ticket(ticket_id):
     query = select(ServiceTicket).where(ServiceTicket.id == ticket_id)
     service_ticket = db.session.execute(query).scalars().first()
     
+    if not service_ticket:
+        return jsonify({'message': 'Service ticket not found'}), 404
+
     for mechanic_id in service_ticket_edits['add_mechanic_ids']:
         query = select(Mechanic).where(Mechanic.id == mechanic_id)
         mechanic = db.session.execute(query).scalars().first()
 
-        if mechanic and mechanic not in service_ticket:
+        if mechanic and mechanic not in service_ticket.mechanics:
             service_ticket.mechanics.append(mechanic)
 
     for mechanic_id in service_ticket_edits['remove_mechanic_ids']:
         query = select(Mechanic).where(Mechanic.id == mechanic_id)
         mechanic = db.session.execute(query).scalars().first()
 
-    if mechanic and mechanic in service_ticket.mechanics:
-        service_ticket.mechanics.remove(mechanic)
+        if mechanic and mechanic in service_ticket.mechanics:
+            service_ticket.mechanics.remove(mechanic)
 
 
     db.session.commit()
@@ -118,15 +122,15 @@ def remove_inventory_item(ticket_id, item_id):
     if not ticket or not item:
         return jsonify({'message': 'Ticket or item not found'})
     
-    removed_item = db.session.execute(select(ServiceInventory).where((ServiceInventory.service_id == ticket_id) & \
-    ServiceInventory.item_id == item_id)).scalars().first()
+    removed_item = db.session.execute(select(ServiceInventory).where((ServiceInventory.service_id == ticket_id) & 
+    (ServiceInventory.item_id == item_id))).scalars().first()
 
     if not removed_item:
         return jsonify({'message': 'Item not found'})
     if removed_item.quantity > 1:
         removed_item.quantity -= 1
     elif removed_item.quantity == 1:
-        db.session.delete(item)
+        db.session.delete(removed_item)
     else:
         return jsonify({'message': "I don't know how you got this error"})
 

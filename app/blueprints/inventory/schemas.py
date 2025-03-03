@@ -9,4 +9,5 @@ class InventorySchema(ma.SQLAlchemyAutoSchema):
     name = ma.auto_field()
     price = ma.auto_field()
 
-inventory_schema = InventorySchema(many=True)
+inventory_schema = InventorySchema()
+inventory_multi_schema = InventorySchema(many=True)
