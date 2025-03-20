@@ -8,7 +8,7 @@ from app.extensions import limiter, cache
 
 
 @mechanics_bp.route('/', methods=['POST'])
-@limiter.limit('3 per hour')
+@limiter.limit('50 per hour')
 def create_mechanic():
     try:
         mechanic_data = mechanic_schema.load(request.json)
@@ -64,9 +64,14 @@ def update_mechanic(mechanic_id):
 
 @mechanics_bp.route('/<int:mechanic_id>', methods=['DELETE'])
 def delete_mechanic(mechanic_id):
+    query = select(Mechanic).where(Mechanic.id == mechanic_id)
+    mechanic = db.session.execute(query).scalars().first()
+
+    if not mechanic:
+        return jsonify({'message': 'Mechanic not found'}), 400
+
     query = delete(Mechanic).where(Mechanic.id == mechanic_id)
     db.session.execute(query)
-
     db.session.commit()
 
     return jsonify({'message': f'Successfully deleted mechanic'})

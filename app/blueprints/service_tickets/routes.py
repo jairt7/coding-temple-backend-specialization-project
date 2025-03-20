@@ -1,7 +1,7 @@
 from marshmallow import ValidationError
 from flask import request, jsonify
 from . import service_ticket_bp
-from .schemas import service_ticket_schema, service_tickets_schema, edit_service_ticket_schema
+from .schemas import service_ticket_schema, service_tickets_schema, edit_service_ticket_schema, add_inventory_item_schema, remove_inventory_item_schema
 from app.models import db, ServiceTicket, Mechanic, Customer, Inventory, ServiceInventory
 from sqlalchemy import select, delete
 

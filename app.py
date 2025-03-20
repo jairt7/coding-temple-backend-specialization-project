@@ -2,7 +2,7 @@ from app import create_app
 from app.models import db
 
 
-app = create_app('DevelopmentConfig')
+app = create_app('TestingConfig')
 
 
 with app.app_context():

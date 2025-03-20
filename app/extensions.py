@@ -7,7 +7,7 @@ ma = Marshmallow()
 
 limiter = Limiter(
 key_func=get_remote_address,
-default_limits=['20 per day', '6 per hour'],
+default_limits=['100 per day', '50 per hour'],
 storage_uri='memory://'
 )
 
