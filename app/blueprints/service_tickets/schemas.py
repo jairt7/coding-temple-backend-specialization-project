@@ -6,11 +6,13 @@ class ServiceTicketSchema(ma.SQLAlchemyAutoSchema):
     customer = fields.Nested("CustomerSchema")
     mechanics = fields.Nested("MechanicSchema", many=True)
     inventory = fields.Nested("ServiceInventorySchema", many=True)
+    mechanic_ids = fields.List(fields.Int(), load_only=True)
 
     class Meta:
         model = ServiceTicket
-        fields = ('id', 'VIN', 'service_date', 'service_desc', 'customer_id', 'mechanic_ids', 'mechanics', 'customer', 'inventory', 'inventory_ids')
+        fields = ('id', 'VIN', 'service_date', 'service_desc', 'customer_id', 'mechanic_ids', 'mechanics', 'customer', 'inventory', 'inventory_ids', 'mechanic_ids')
         include_fk = True
+        ordered = True
 
     id = ma.auto_field()
     VIN = ma.auto_field()

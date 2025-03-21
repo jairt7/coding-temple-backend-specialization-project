@@ -66,6 +66,12 @@ class TestCustomer(unittest.TestCase):
         response = self.client.post('/customers/login', json=credentials)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json['message'], 'Invalid email or password.')
+
+    def test_get_customers(self):
+        response = self.client.get('/customers/')
+        self.assertIsNotNone(response.json)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(any(customer['name'] == 'Test Zest' for customer in response.json))
     
     def test_update_customer(self):
         credentials = {

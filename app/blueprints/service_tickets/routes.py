@@ -20,17 +20,12 @@ def create_service_ticket():
     new_service_ticket = ServiceTicket(VIN=service_ticket_data['VIN'], service_date=service_ticket_data['service_date'], \
     service_desc=service_ticket_data['service_desc'], customer_id=service_ticket_data['customer_id'])
 
-    mechanic_ids = service_ticket_data.get('mechanics', [])
+    mechanic_ids = service_ticket_data.get('mechanic_ids', [])
 
-    mechanics = []
-    for mechanic_id in mechanic_ids:
-        mechanic = db.session.execute(select(Mechanic).where(Mechanic.id == mechanic_id)).scalars().first()
-        if not mechanic:
-            return jsonify({'message': f'Invalid mechanic ID: {mechanic_id}'}), 400
-        mechanics.append(mechanic)
+    if mechanic_ids:
+        mechanics = db.session.scalars(select(Mechanic).where(Mechanic.id.in_(mechanic_ids))).all()
+        new_service_ticket.mechanics.extend(mechanics)
 
-    new_service_ticket.mechanics.extend(mechanics)
-    
     db.session.add(new_service_ticket)
     db.session.commit()
     

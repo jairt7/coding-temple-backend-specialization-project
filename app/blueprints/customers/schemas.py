@@ -4,6 +4,7 @@ from app.extensions import ma
 class CustomerSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Customer
+        ordered = True
     
     id = ma.auto_field()
     name = ma.auto_field()

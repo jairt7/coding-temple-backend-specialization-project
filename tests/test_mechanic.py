@@ -40,7 +40,7 @@ class TestMechanic(unittest.TestCase):
         response = self.client.post('/mechanics/', json=mechanic_payload)
         self.assertEqual(response.status_code, 400)
 
-    def test_get(self):
+    def test_get_mechanics(self):
         response = self.client.get('/mechanics/')
         self.assertIsNotNone(response.json)
         self.assertEqual(response.status_code, 200)

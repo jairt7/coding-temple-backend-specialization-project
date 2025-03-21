@@ -685,7 +685,7 @@ definitions:
       customer_id:
         type: integer
         description: "ID of the customer for the service ticket"
-      mechanics:
+      mechanic_ids:
         type: array
         items:
           type: integer

@@ -4,6 +4,7 @@ from app.extensions import ma
 class MechanicSchema(ma.SQLAlchemyAutoSchema):
     class Meta:
         model = Mechanic
+        ordered = True
     
     id = ma.auto_field()
     name = ma.auto_field()
