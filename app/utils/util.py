@@ -2,9 +2,9 @@ from datetime import datetime, timedelta, timezone
 from jose import jwt, ExpiredSignatureError, JWTError
 from functools import wraps
 from flask import request, jsonify
+import os
 
-
-SECRET_KEY = "Azumarill is the best Water-type Pokemon"
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'Azumarill is the best Water-type Pokemon'
 
 def encode_token(user_id):
     payload = {
