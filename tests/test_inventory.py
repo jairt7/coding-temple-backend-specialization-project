@@ -64,7 +64,15 @@ class TestInventory(unittest.TestCase):
         }
         response = self.client.put(f'/inventory/{inventory_payload['id']}', json=inventory_payload)
         self.assertEqual(response.status_code, 400)
-    
+
+        inventory_payload = {
+            'id': 1,
+            'name': 'No price!'
+        }
+        response = self.client.put(f'/inventory/{inventory_payload['id']}', json=inventory_payload)
+        self.assertEqual(response.status_code, 400)
+
+
     def test_delete_inventory(self):
         response = self.client.delete('/inventory/1')
         self.assertEqual(response.status_code, 200)

@@ -1,5 +1,5 @@
 from app import create_app
-from app.models import db, ServiceTicket, Customer, Mechanic
+from app.models import db, ServiceTicket, Customer, Mechanic, Inventory
 from datetime import date
 import unittest
 
@@ -18,11 +18,13 @@ class TestServiceTicket(unittest.TestCase):
             mechanic2 = Mechanic(name="Daemon", email="miigunner@email.com", phone="801-555-1332", salary=6000)
             db.session.add_all([mechanic1, mechanic2])
             db.session.commit()
+            item = Inventory(name="Windshield wiper fluid", price="4.49")
+            db.session.add(item)
+            db.session.commit()
             self.ticket = ServiceTicket(
                 VIN="12345678909876543", service_date=date(2025, 3, 20),
                 service_desc="Car tried to out-pizza the Hut", customer_id=customer.id)
             self.ticket.mechanics.extend([mechanic1, mechanic2])
-
             db.session.add(self.ticket)
             db.session.commit()
 
@@ -63,30 +65,47 @@ class TestServiceTicket(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(any(ticket['VIN'] == '12345678909876543' for ticket in response.json))
 
-    def test_update_ticket(self):
+    def test_add_remove_mechanic_ticket(self):
         ticket_payload = {
-            "id": 1,
-            "service_date": "2025-03-21",
-            "service_desc": "Working on this later than originally planned"
+            "remove_mechanic_ids": [2]
         }
-        response = self.client.put(f"/service-tickets/{ticket_payload['id']}/", json=ticket_payload)
+        response = self.client.put("/service-tickets/1", json=ticket_payload)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json['service_date'], '2025-03-21')
+        for mechanic in response.json['mechanics']:
+            self.assertNotEqual(mechanic.get("id"), 2)
 
-    def test_invalid_update_ticket(self):
-        pass
+    def test_invalid_add_remove_mechanic_ticket(self):
+        ticket_payload = {
+            "add_mechanic_ids": [420] # invalid ID
+        }
+        response = self.client.put("/service-tickets/1", json=ticket_payload)
+        self.assertEqual(response.status_code, 400)
 
     def test_delete_ticket(self):
-        pass
+        response = self.client.delete('/service-tickets/1')
+        self.assertEqual(response.status_code, 200)
 
     def test_invalid_delete_ticket(self):
-        pass
+        response = self.client.delete('/service-tickets/420')
+        self.assertEqual(response.status_code, 200)
 
     def test_add_item(self):
-        pass
+        response = self.client.post('/service-tickets/1/add-item/1')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json['quantity'], 1)
+        response = self.client.post('/service-tickets/1/add-item/1')
+        self.assertEqual(response.json['quantity'], 2)
+
+    def test_invalid_add_item(self):
+        response = self.client.post('/service-tickets/1/add-item/420')
+        self.assertEqual(response.status_code, 400)
 
     def test_remove_item(self):
-        pass
+        self.client.post('/service-tickets/1/add-item/1')
+        response = self.client.post('/service-tickets/1/remove-item/1')
+        self.assertEqual(response.status_code, 200)
 
     def test_invalid_remove_item(self):
-        pass
+        self.client.post('/service-tickets/1/add-item/1')
+        response = self.client.post('/service-tickets/1/remove-item/0')
+        self.assertEqual(response.status_code, 400)

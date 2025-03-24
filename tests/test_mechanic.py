@@ -65,11 +65,18 @@ class TestMechanic(unittest.TestCase):
 
     def test_invalid_update_mechanic(self):
         mechanic_payload = {
-            'id': 69,
-            'name': 'Missingno.',
+            'id': 420,
+            'name': 'MissingID',
             'email': 'nonexistentid@email.com',
             'phone': '555-555-0000',
             'salary': '2.10'
+        }
+        response = self.client.put(f'/mechanics/{mechanic_payload['id']}', json=mechanic_payload)
+        self.assertEqual(response.status_code, 400)
+
+        mechanic_payload = {
+            'id': 1,
+            'name': 'Missing everything'
         }
         response = self.client.put(f'/mechanics/{mechanic_payload['id']}', json=mechanic_payload)
         self.assertEqual(response.status_code, 400)
@@ -79,5 +86,5 @@ class TestMechanic(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_invalid_delete(self):
-        response = self.client.delete('/mechanics/69')
+        response = self.client.delete('/mechanics/420')
         self.assertEqual(response.status_code, 400)

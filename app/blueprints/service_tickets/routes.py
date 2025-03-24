@@ -57,21 +57,30 @@ def edit_service_ticket(ticket_id):
     
     if not service_ticket:
         return jsonify({'message': 'Service ticket not found'}), 404
+    
+    add_mechanic_ids = service_ticket_edits.get('add_mechanic_ids', [])
+    if add_mechanic_ids:
+        for mechanic_id in add_mechanic_ids:
+            query = select(Mechanic).where(Mechanic.id == mechanic_id)
+            mechanic = db.session.execute(query).scalars().first()
 
-    for mechanic_id in service_ticket_edits['add_mechanic_ids']:
-        query = select(Mechanic).where(Mechanic.id == mechanic_id)
-        mechanic = db.session.execute(query).scalars().first()
+            if not mechanic:
+                return jsonify({'error': 'Mechanic not found'}), 400
 
-        if mechanic and mechanic not in service_ticket.mechanics:
-            service_ticket.mechanics.append(mechanic)
+            if mechanic and mechanic not in service_ticket.mechanics:
+                service_ticket.mechanics.append(mechanic)
+    
+    remove_mechanic_ids = service_ticket_edits.get('remove_mechanic_ids', [])
+    if remove_mechanic_ids:
+        for mechanic_id in remove_mechanic_ids:
+            query = select(Mechanic).where(Mechanic.id == mechanic_id)
+            mechanic = db.session.execute(query).scalars().first()
 
-    for mechanic_id in service_ticket_edits['remove_mechanic_ids']:
-        query = select(Mechanic).where(Mechanic.id == mechanic_id)
-        mechanic = db.session.execute(query).scalars().first()
+            if not mechanic:
+                return jsonify({'error': 'Mechanic not found'}), 400
 
-        if mechanic and mechanic in service_ticket.mechanics:
-            service_ticket.mechanics.remove(mechanic)
-
+            if mechanic and mechanic in service_ticket.mechanics:
+                service_ticket.mechanics.remove(mechanic)
 
     db.session.commit()
     
@@ -93,7 +102,7 @@ def add_inventory_item(ticket_id, item_id):
     ticket = db.session.get(ServiceTicket, ticket_id)
     item = db.session.get(Inventory, item_id)
     if not ticket or not item:
-        return jsonify({'message': 'Ticket or item not found'})
+        return jsonify({'message': 'Ticket or item not found'}), 400
     
     added_item = db.session.execute(select(ServiceInventory).where((ServiceInventory.service_id == ticket_id) & \
     (ServiceInventory.item_id == item_id))).scalars().first()
@@ -115,19 +124,19 @@ def remove_inventory_item(ticket_id, item_id):
     item = db.session.get(Inventory, item_id)
 
     if not ticket or not item:
-        return jsonify({'message': 'Ticket or item not found'})
+        return jsonify({'message': 'Ticket or item not found'}), 400
     
     removed_item = db.session.execute(select(ServiceInventory).where((ServiceInventory.service_id == ticket_id) & 
     (ServiceInventory.item_id == item_id))).scalars().first()
 
     if not removed_item:
-        return jsonify({'message': 'Item not found'})
+        return jsonify({'message': 'Item not found'}), 400
     if removed_item.quantity > 1:
         removed_item.quantity -= 1
     elif removed_item.quantity == 1:
         db.session.delete(removed_item)
     else:
-        return jsonify({'message': "I don't know how you got this error"})
+        return jsonify({'message': "I don't know how you got this error"}), 400
 
     db.session.commit()
 
