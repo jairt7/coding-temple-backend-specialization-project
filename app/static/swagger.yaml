@@ -3,9 +3,9 @@ info:
   title: "CT Backend Project"
   description: "An API project for a fictional auto mechanic shop"
   version: "1.0.0"
-host: "127.0.0.1:5000"
+host: "coding-temple-backend-specialization-uqof.onrender.com"
 schemes:
-  - "http"
+  - "https"
 consumes:
   - "application/json"
 produces:
