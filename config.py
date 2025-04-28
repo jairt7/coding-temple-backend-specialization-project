@@ -1,5 +1,5 @@
-from root_password import root_password
 import os
+root_password = os.environ.get('root_password')
 class DevelopmentConfig:
     SQLALCHEMY_DATABASE_URI = f'mysql+mysqlconnector://root:{root_password}@localhost/mechanic_db'
     DEBUG = True
